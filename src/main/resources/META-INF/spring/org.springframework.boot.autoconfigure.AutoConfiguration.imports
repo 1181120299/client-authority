@@ -1,1 +1,3 @@
 com.jack.clientauthority.processor.NeedPermissionProcessor
+com.jack.clientauthority.config.AppConfig
+com.jack.clientauthority.processor.CustomAccessDeniedHandler
