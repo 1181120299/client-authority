@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
  * 
  * @author chenjiabao
  * @email 1181120299@qq.com
- * @date 2023-04-17 21:00:36
+ * @date 2023-04-18 19:43:31
  */
 @Data
 public class MenuDto {
@@ -58,7 +58,7 @@ public class MenuDto {
 	* 顺序，值越小排越前面
 	*/
 	@NotNull(message = "顺序，值越小排越前面不能为空")
-	private Integer order;
+	private Integer sort;
 
 	/**
 	* 描述

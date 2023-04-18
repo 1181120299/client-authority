@@ -12,7 +12,7 @@ import java.util.Date;
  * 
  * @author chenjiabao
  * @email 1181120299@qq.com
- * @date 2023-04-17 21:00:36
+ * @date 2023-04-18 19:43:31
  */
 @Data
 @EqualsAndHashCode
@@ -52,7 +52,7 @@ public class Menu {
 	/**
 	* 顺序，值越小排越前面
 	*/
-	private Integer order;
+	private Integer sort;
 
 	/**
 	* 描述

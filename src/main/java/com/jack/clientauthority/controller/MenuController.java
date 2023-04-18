@@ -1,6 +1,9 @@
 package com.jack.clientauthority.controller;
 
+import com.jack.clientauthority.vo.MenuTreeNode;
 import jakarta.annotation.Resource;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.annotation.Validated;
@@ -18,6 +21,10 @@ import com.jack.clientauthority.service.MenuService;
 
 import com.jack.utils.web.R;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * 应用菜单项
  * 
@@ -32,6 +39,60 @@ public class MenuController {
 
 	@Resource
 	private MenuService menuService;
+
+	@GetMapping("/getMenuTreeData")
+	@ResponseBody
+	public R getMenuTreeData(String openId) {
+		List<Menu> menuList = menuService.list();
+		List<MenuTreeNode> treeNodeList = new ArrayList<>(menuList.size());
+		menuList.forEach(menu -> {
+			MenuTreeNode treeNode = new MenuTreeNode();
+			treeNode.setId(menu.getId());
+			treeNode.setParentId(menu.getParentId());
+			treeNode.setName(menu.getName());
+
+			treeNodeList.add(treeNode);
+		});
+
+		MenuTreeNode rootNode = new MenuTreeNode();
+		rootNode.setId("0");
+		rootNode.setParentId("0");
+		rootNode.setName("根节点");
+		rootNode.setOpen(true);
+		treeNodeList.add(rootNode);
+
+		// 递归设置需要open的节点
+		setOpenNode(treeNodeList, openId);
+
+		return R.ok().setData(treeNodeList);
+	}
+
+	/**
+	 * 递归设置需要open的节点
+	 * @param treeNodeList	所有节点的数据
+	 * @param openId	需要open的节点id
+	 */
+	private void setOpenNode(List<MenuTreeNode> treeNodeList, String openId) {
+		if (CollectionUtils.isEmpty(treeNodeList) || StringUtils.isEmpty(openId)) {
+			return;
+		}
+
+		List<MenuTreeNode> targetNodeList = treeNodeList.stream()
+				.filter(node -> node.getId().equals(openId))
+				.toList();
+		if (CollectionUtils.isEmpty(targetNodeList)) {
+			return;
+		}
+
+		MenuTreeNode targetNode = targetNodeList.get(0);
+		targetNode.setOpen(true);
+
+		if ("0".equals(targetNode.getParentId())) {
+			return;
+		}
+
+		setOpenNode(treeNodeList, targetNode.getParentId());
+	}
 
 	/**
 	 * 信息
@@ -67,6 +128,8 @@ public class MenuController {
 
 	/**
 	 * 删除
+	 * <p></p>
+	 * 会级联删除下级菜单
 	 */
 	@GetMapping("/delete")
 	public R delete(@NotNull(message = "id不能为空") String id){

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+    <head>
+        <title>Spring Security OAuth 2.0 Sample</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.css" th:href="@{/webjars/bootstrap/css/bootstrap.css}" />
+        <link rel="stylesheet" th:href="@{/webjars/github-com-zTree-zTree_v3/zTreeStyle/zTreeStyle.css}"/>
+        <style>
+            div#rMenu {
+                position:absolute;
+                visibility:hidden;
+                top:0;
+                text-align: left;
+                padding:4px;
+            }
+            div#rMenu a{
+                padding: 3px 15px 3px 15px;
+                background-color:#cad4e6;
+                vertical-align:middle;
+            }
+        </style>
+    </head>
+    <body>
+        <div th:fragment="header">
+            <nav class="navbar navbar-default">
+                <div class="container-fluid">
+                    <div class="collapse navbar-collapse">
+                        <form class="navbar-form navbar-left" th:action="@{/appConfig}" method="get">
+                            <button type="submit" class="btn btn-default navbar-btn">返回</button>
+                        </form>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div class="container">
+            <div th:if="${error}" class="alert alert-danger alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 th:text="${error}" class="text-center"></h4>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">菜单项:</h3>
+                </div>
+                <!--<ul class="list-group">
+                    <li class="list-group-item">
+                        <a href="/authorize?grant_type=authorization_code"><span style="font-size:medium">菜单配置</span>&nbsp;&nbsp;<small class="text-muted">(应用的菜单项，用于前端控制菜单的显示)</small></a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="/authorize?grant_type=client_credentials"><span style="font-size:medium">角色配置</span>&nbsp;&nbsp;<small class="text-muted">(应用的角色，配置角色可以看到的菜单、拥有的权限。给用户分配角色)</small></a>
+                    </li>
+                </ul>-->
+                <ul id="tree" class="ztree" style="width:230px; overflow:auto;"></ul>
+                <div th:if="${messages}" class="panel-footer">
+                    <h4>Messages:</h4>
+                    <table class="table table-condensed">
+                        <tbody>
+                            <tr class="row" th:each="message : ${messages}">
+                                <td th:text="${message}">message</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <a id="ctx" style="display: none" th:href="@{/}"></a>
+
+        <div id="rMenu" style="display: none">
+            <a href="javascript:void(0);" class="list-group-item" onclick="">新增下级</a>
+            <a href="javascript:void(0);" class="list-group-item" onclick="">修改</a>
+            <a href="javascript:void(0);" class="list-group-item" onclick="deleteMenu()">删除</a>
+        </div>
+
+        <script src="/webjars/jquery/jquery.min.js" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+        <script src="/webjars/bootstrap/js/bootstrap.min.js" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+        <script th:src="@{/webjars/github-com-zTree-zTree_v3/jquery.ztree.all.min.js}"></script>
+        <script>
+            function deleteMenu() {
+                var ctx = $('#ctx').attr("href");
+                console.log("ctx = ", ctx);
+
+                var treeObj = $.fn.zTree.getZTreeObj("tree");
+                var nodes = treeObj.getSelectedNodes();
+                if (nodes.length < 1) {
+                    alert("请点击选择要删除菜单节点");
+                    return;
+                }
+
+                if (nodes.length > 1) {
+                    alert("请选择一个需要删除的菜单节点");
+                    return;
+                }
+
+                var menu = nodes[0];
+                console.debug(menu);
+                if (!confirm("确定删除[" + menu.name + "]？")) {
+                    return;
+                }
+
+                $.ajax({
+                    type: "GET",
+                    url: ctx + "menu/delete?id=" + menu.id,
+                    error: function () {
+                        alert("获取数据失败");
+                    },
+                    success: function (data) {
+                        console.info(data);
+
+                        // 传递要open的节点id
+                        var href = setOpenId2Href(menu.parentId);
+
+                        window.location.href = href;
+                    }
+                })
+            }
+
+            /**
+             * 需要open的节点id
+             * @param openId    节点id
+             */
+            function setOpenId2Href(openId) {
+                var parameterMap = getParameterMap();
+                parameterMap.set("openId", openId);
+                return setParameterMap2Search(parameterMap);
+            }
+
+            // 返回参数map
+            function getParameterMap() {
+                let parameters = window.location.search;
+                let map = new Map;
+                // 如果没有参数
+                if (parameters.indexOf("?") === -1) return map;
+                let strs = parameters.substr(1).split("&");
+                for (let i = 0; i < strs.length; i++) {
+                    let str = strs[i].split("=");
+                    map.set(str[0], str[1]);
+                }
+
+                return map;
+            }
+
+            /**
+             * 将参数Map设置到地址栏查询条件
+             * @param parameterMap  参数Map
+             */
+            function setParameterMap2Search(parameterMap) {
+                if (!parameterMap) {
+                    return;
+                }
+
+                let newSearch = null;
+                for (let key of parameterMap.keys()) {
+                    if (newSearch == null) {
+                        newSearch = "?" + key + "=" + parameterMap.get(key);
+                    } else {
+                        newSearch = newSearch + "&" + key + "=" + parameterMap.get(key);
+                    }
+                }
+
+                console.info("newSearch = ", newSearch);
+                var href = window.location.href;
+                href = href.substring(0, href.indexOf("?"));
+                href = href + newSearch;
+                console.log(href);
+                return href;
+            }
+        </script>
+        <script>
+            //右键树结构
+            function zTreeOnRightClick(event, treeId, treeNode) {
+                console.log("event = ", event);
+                console.log("treeId = ", treeId);
+                console.log("treeNode = ", treeNode);
+
+                if (!treeNode && event.target.tagName.toLowerCase() !== "button" && $(event.target).parents("a").length === 0) {
+                    showRMenu("root", event.clientX, event.clientY, treeNode);
+                } else if (treeNode && !treeNode.noR) {
+                    showRMenu("node", event.clientX, event.clientY, treeNode);
+                }
+            };
+
+            //显示右键菜单
+            function showRMenu(type, x, y, treeNode) {
+                $("#rMenu").show();
+                $("#rMenu").css({"top": y + "px", "left": x + "px", "visibility": "visible"}); //设置右键菜单的位置、可见
+                $("body").bind("mousedown", onBodyMouseDown);
+
+                // 选中节点
+                var treeObj = $.fn.zTree.getZTreeObj("tree");
+                treeObj.selectNode(treeNode);
+            }
+
+            //隐藏右键菜单
+            function hideRMenu() {
+                $("#rMenu").css({"visibility": "hidden"}); //设置右键菜单不可见
+                $("body").unbind("mousedown", onBodyMouseDown);
+            }
+            //鼠标按下事件
+            function onBodyMouseDown(event) {
+                if (!(event.target.id == "rMenu" || $(event.target).parents("#rMenu").length > 0)) {
+                    // $("#rMenu").hide();
+                    $("#rMenu").css({ "visibility": "hidden"});
+                }
+            }
+        </script>
+        <script type="text/javascript" >
+            var zTreeObj,
+                setting = {
+                    view: {
+                        selectedMulti: false
+                    },
+                    callback: {
+                        onRightClick: zTreeOnRightClick
+                    },
+                    data: {
+                        simpleData: {
+                            enable: true,
+                            idKey: "id",
+                            pIdKey: "parentId",
+                            rootPId: 0
+                        }
+                    }
+                },
+                zTreeNodes = [
+                    {"id":1, "parentId":0, "name": "学习网站"},
+                    {"id":11, "parentId":1, "name": "码农之家", "url": "https://spring.io", open: true},
+                    {"id":12, "parentId":1, "name": "百度", "url": "https://www.baidu.com"},
+                    {"id":111, "parentId":11, "name": "程序猿进阶"}
+                ];
+
+            $(document).ready(function(){
+                var ctx = $('#ctx').attr("href");
+                console.log("ctx = ", ctx);
+
+                var openId = getParameterMap().get("openId");
+
+                $.ajax({
+                    type: "GET",
+                    url: ctx + "menu/getMenuTreeData?openId=" + openId,
+                    error: function () {
+                        alert("获取数据失败");
+                    },
+                    success: function (data) {
+                        console.info(data);
+                        zTreeNodes = data.data;
+                        zTreeObj = $.fn.zTree.init($("#tree"), setting, zTreeNodes);
+                    }
+                })
+            });
+        </script>
+    </body>
+</html>

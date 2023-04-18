@@ -1,3 +1,11 @@
 com.jack.clientauthority.processor.NeedPermissionProcessor
 com.jack.clientauthority.config.AppConfig
 com.jack.clientauthority.processor.CustomAccessDeniedHandler
+com.jack.clientauthority.controller.AppConfigController
+com.jack.clientauthority.service.impl.MenuServiceImpl
+com.jack.clientauthority.service.impl.RoleMenuServiceImpl
+com.jack.clientauthority.service.impl.RolePermissionServiceImpl
+com.jack.clientauthority.service.impl.RoleServiceImpl
+com.jack.clientauthority.service.impl.RoleUserServiceImpl
+com.jack.clientauthority.controller.MenuController
+com.jack.clientauthority.controller.RoleController
