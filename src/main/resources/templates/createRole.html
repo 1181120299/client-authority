@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>添加客户端</title>
+    <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.css" th:href="@{/webjars/bootstrap/css/bootstrap.css}" />
+</head>
+
+<body>
+
+<div style="width:400px;height:100%;margin-left:450px;margin-top:100px;">
+    <form id="clientForm">
+        角色名称<span style="color: red">*</span>：<span id="clientTip"></span><input class="form-control"  type="text" name="name" oninput="checkRole(this, 'name')" placeholder="请输入角色名称" autocomplete="off"><br>
+        角色编码<span style="color: red">*</span>：<span id="codeTip"></span><input class="form-control" type="text" name="code" placeholder="请输入英文，可以使用下划线" oninput="checkRole(this, 'code')" autocomplete="off"><br>
+        描 述：<input class="form-control" type="text"  name="description" autocomplete="off"><br>
+        <button class="btn btn-primary btn-lg btn-block" type="button" onclick="submitForm()">保存</button>
+    </form>
+
+    <a id="ctx" style="display: none" th:href="@{/}"></a>
+</div>
+<script src="/webjars/jquery/jquery.min.js" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+<script>
+    var ctx = $('#ctx').attr("href");
+    console.log("ctx = ", ctx);
+
+    function submitForm() {
+        const param = {};
+        $($('#clientForm').serializeArray()).each(function () {
+            console.debug(this);
+            param[this.name] = this.value;
+        });
+
+        console.info(param);
+        $.ajax({
+            type: "POST",
+            url: ctx + "role/save",
+            data: JSON.stringify(param),
+            async: false,
+            dataType: "json",
+            contentType: "application/json",
+            error: function (request) {
+                alert("保存失败");
+            },
+            success: function (data) {
+                console.info(data);
+                alert(data.retMsg);
+                if (data.retCode === 2000) {
+                    location.href = ctx + "role/page"
+                }
+            }
+        });
+    }
+
+    function checkRole(obj, type) {
+        const text = $(obj).val();
+        console.debug(text);
+
+        if (!text) {
+            $("#clientTip").text("");
+            $("#codeTip").text("");
+            return;
+        }
+
+        $.ajax({
+            type: "GET",
+            url: ctx + "role/checkRole?text=" + text + "&type=" + type,
+            success: function (data) {
+                // do something
+                console.debug(data);
+
+                var tip;
+                if (type === 'name') {
+                    tip = $("#clientTip");
+                } else if (type === 'code') {
+                    tip = $("#codeTip");
+                } else {
+                    console.info("没有找到提示信息DOM对象");
+                }
+
+                if (data.retCode === 2000) {
+                    tip.text(data.retMsg).css("color", "green");
+                } else {
+                    tip.text(data.retMsg).css("color", "red");
+                }
+            }
+        })
+    }
+</script>
+</body>
+</html>
+
+

@@ -1,5 +1,6 @@
 com.jack.clientauthority.processor.NeedPermissionProcessor
 com.jack.clientauthority.config.AppConfig
+com.jack.clientauthority.config.MybatisPlusPageConfig
 com.jack.clientauthority.processor.CustomAccessDeniedHandler
 com.jack.clientauthority.controller.AppConfigController
 com.jack.clientauthority.service.impl.MenuServiceImpl

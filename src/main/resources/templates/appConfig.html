@@ -25,7 +25,7 @@
                         <a th:href="@{/appConfig/toMenu}"><span style="font-size:medium">菜单配置</span>&nbsp;&nbsp;<small class="text-muted">(应用的菜单项，用于前端控制菜单的显示)</small></a>
                     </li>
                     <li class="list-group-item">
-                        <a href="/authorize?grant_type=client_credentials"><span style="font-size:medium">角色配置</span>&nbsp;&nbsp;<small class="text-muted">(应用的角色，配置角色可以看到的菜单、拥有的权限。给用户分配角色)</small></a>
+                        <a th:href="@{/role/page}"><span style="font-size:medium">角色配置</span>&nbsp;&nbsp;<small class="text-muted">(应用的角色，配置角色可以看到的菜单、拥有的权限。给用户分配角色)</small></a>
                     </li>
                 </ul>
                 <div th:if="${messages}" class="panel-footer">
