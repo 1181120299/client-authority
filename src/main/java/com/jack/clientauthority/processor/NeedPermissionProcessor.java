@@ -38,7 +38,9 @@ public class NeedPermissionProcessor {
         log.debug("authentication = {}", authentication);
 
         // 获取切入点的方法签名，作为权限代码。
-        String permissionCode = joinPoint.getSignature().toLongString();
+        String classReference = joinPoint.getSignature().getDeclaringType().getName();
+        String methodName = joinPoint.getSignature().getName();
+        String permissionCode = PermissionCodeGenerator.generate(classReference, methodName);
         // 根据当前用户名，查询是否有对应的权限代码。如果有，允许访问。否则抛出AccessDenyException
         List<RoleUser> roleUserList = roleUserMapper.selectList(new LambdaQueryWrapper<RoleUser>()
                 .eq(RoleUser::getUsername, authentication.getName()));
@@ -54,7 +56,7 @@ public class NeedPermissionProcessor {
                 .in(RolePermission::getRoleId, roleIdList));
         List<String> permissionCodeList = rolePermissionList.stream()
                 .map(RolePermission::getPermissionCode)
-                .collect(Collectors.toList());
+                .toList();
         if (!permissionCodeList.contains(permissionCode)) {
             throw new AccessDeniedException("没有访问权限：" + annotation.value());
         }

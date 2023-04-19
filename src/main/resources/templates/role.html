@@ -55,8 +55,8 @@
             <td style="vertical-align: middle!important;" th:text="${role.description}"></td>
             <td>
                 <!--         a标签用来定义超链接 href表示超链接-->
-                <a class="btn btn-primary" href="javascript:void(0)" th:onclick="delClient([[${role.id}]], this)">关联用户</a>
-                <a class="btn btn-primary" href="javascript:void(0)" th:onclick="delClient([[${role.id}]], this)">关联权限</a>
+                <a class="btn btn-primary" href="javascript:void(0)" th:onclick="associateUser([[${role.id}]])">关联用户</a>
+                <a class="btn btn-primary" href="javascript:void(0)" th:onclick="associatePermission([[${role.id}]])">关联权限</a>
                 <a class="btn btn-primary" th:href="@{'/role/toUpdate/'+${role.id}}">更改</a>
                 <a class="btn btn-danger" href="javascript:void(0)" th:onclick="delClient([[${role.id}]], this)">删除</a>
             </td>
@@ -138,6 +138,10 @@
 <script>
     var ctx = $('#ctx').attr("href");
     console.log("ctx = ", ctx);
+
+    function associatePermission(id) {
+        window.location.href = ctx + "role/associatePermission/" + id;
+    }
 
     function delClient(id, obj) {
         var clientId = $($(obj).parent().parent().children("td")[1]).text();
