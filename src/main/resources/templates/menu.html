@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
     <head>
         <title>Spring Security OAuth 2.0 Sample</title>
         <meta charset="utf-8" />
@@ -20,6 +20,10 @@
                 background-color:#cad4e6;
                 vertical-align:middle;
             }
+
+            form .inputNotNull{
+                color: red;
+            }
         </style>
     </head>
     <body>
@@ -39,18 +43,10 @@
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 th:text="${error}" class="text-center"></h4>
             </div>
-            <div class="panel panel-default">
+            <div class="panel panel-default" style="width: 50%; float: left;">
                 <div class="panel-heading">
-                    <h3 class="panel-title">菜单项:</h3>
+                    <h3 class="panel-title">应用菜单:</h3>
                 </div>
-                <!--<ul class="list-group">
-                    <li class="list-group-item">
-                        <a href="/authorize?grant_type=authorization_code"><span style="font-size:medium">菜单配置</span>&nbsp;&nbsp;<small class="text-muted">(应用的菜单项，用于前端控制菜单的显示)</small></a>
-                    </li>
-                    <li class="list-group-item">
-                        <a href="/authorize?grant_type=client_credentials"><span style="font-size:medium">角色配置</span>&nbsp;&nbsp;<small class="text-muted">(应用的角色，配置角色可以看到的菜单、拥有的权限。给用户分配角色)</small></a>
-                    </li>
-                </ul>-->
                 <ul id="tree" class="ztree" style="width:230px; overflow:auto;"></ul>
                 <div th:if="${messages}" class="panel-footer">
                     <h4>Messages:</h4>
@@ -63,28 +59,147 @@
                     </table>
                 </div>
             </div>
+            <div id="formDiv" class="panel panel-default" style="width: 40%; float: left; margin-left: 20px; display: none">
+                <div class="panel-heading">
+                    <h3 class="panel-title">菜单信息:</h3>
+                </div>
+                <form id="menuForm" style="padding: 10px">
+                    <input type="hidden" name="id">
+                    <input type="hidden" name="parentId">
+                    <div id="parentNameDiv">父级菜单：<input class="form-control" type="text" name="parentName" readonly autocomplete="off"><br></div>
+                    菜单名称<span class="inputNotNull">*</span>：<span id="clientTip"></span><input class="form-control"  type="text" name="name" oninput="checkMenuName(this)" placeholder="请输入菜单名称" autocomplete="off"><br>
+                    菜单编码<span class="inputNotNull">*</span>：<input class="form-control" type="text" name="code" oninput="checkMenuCode(this)" placeholder="菜单编码，以/开头，英文字母" autocomplete="off"><br>
+                    <div id="completeCodeDiv">完整的菜单编码：<input class="form-control" type="text"  name="completeCode" autocomplete="off" readonly><br></div>
+                    描 述：<input class="form-control" type="text" name="description" autocomplete="off"><br>
+                    <button id="btnSave" class="btn btn-primary btn-lg btn-block" type="button" onclick="submitForm()">保存</button>
+                </form>
+            </div>
         </div>
 
         <a id="ctx" style="display: none" th:href="@{/}"></a>
 
         <div id="rMenu" style="display: none">
-            <a href="javascript:void(0);" class="list-group-item" onclick="">新增下级</a>
-            <a href="javascript:void(0);" class="list-group-item" onclick="">修改</a>
+            <a href="javascript:void(0);" class="list-group-item" onclick="createChildMenu()">新增下级</a>
+            <a href="javascript:void(0);" class="list-group-item" onclick="modifyMenu()">修改</a>
             <a href="javascript:void(0);" class="list-group-item" onclick="deleteMenu()">删除</a>
         </div>
+
+        <!-- Target 用于复制菜单内容 -->
+        <input type="hidden" id="copyInput" value="" />
+
+        <!-- Trigger 用于复制菜单内容 -->
+        <button id="copyBtn" data-clipboard-target="#copyInput" data-clipboard-action="copy" style="display: none">复制</button>
 
         <script src="/webjars/jquery/jquery.min.js" th:src="@{/webjars/jquery/jquery.min.js}"></script>
         <script src="/webjars/bootstrap/js/bootstrap.min.js" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
         <script th:src="@{/webjars/github-com-zTree-zTree_v3/jquery.ztree.all.min.js}"></script>
+        <script th:src="@{/webjars/clipboard/dist/clipboard.min.js}"></script>
         <script>
-            function deleteMenu() {
+            function submitForm() {
+                var ctx = $('#ctx').attr("href");
+                console.log("ctx = ", ctx);
+
+                const param = {};
+                $($('#menuForm').serializeArray()).each(function () {
+                    console.debug(this);
+                    param[this.name] = this.value;
+                });
+
+                console.info(param);
+                $.ajax({
+                    type: "POST",
+                    url: ctx + "menu/saveOrUpdate",
+                    data: JSON.stringify(param),
+                    async: false,
+                    dataType: "json",
+                    contentType: "application/json",
+                    error: function (request) {
+                        alert("保存失败");
+                    },
+                    success: function (data) {
+                        console.info(data);
+                        alert(data.retMsg);
+                        if (data.retCode === 2000) {
+                            // 传递要open的节点id
+                            window.location.href = setOpenId2Href(param.parentId);
+                        }
+                    }
+                });
+            }
+
+            function modifyMenu() {
+                hideRMenu();
+
                 var ctx = $('#ctx').attr("href");
                 console.log("ctx = ", ctx);
 
                 var treeObj = $.fn.zTree.getZTreeObj("tree");
                 var nodes = treeObj.getSelectedNodes();
                 if (nodes.length < 1) {
-                    alert("请点击选择要删除菜单节点");
+                    alert("请点击选择要修改的菜单节点");
+                    return;
+                }
+
+                if (nodes.length > 1) {
+                    alert("请选择一个要修改的菜单节点");
+                    return;
+                }
+
+                var treeNode = nodes[0];
+                if (treeNode.id === "0") {
+                    alert("根节点不能修改");
+                }
+
+                // 找到父节点，显示父节点名称
+                var parentNode = treeNode.getParentNode();
+
+                var parentName;
+                if (parentNode) {
+                    parentName = parentNode.name;
+                } else {
+                    parentName = "根节点";
+                }
+
+                clearForm('menuForm');
+                makeFormShowData(treeNode, parentName);
+                makeFormEditable();
+            }
+
+            function createChildMenu() {
+                hideRMenu();
+
+                var ctx = $('#ctx').attr("href");
+                console.log("ctx = ", ctx);
+
+                var treeObj = $.fn.zTree.getZTreeObj("tree");
+                var nodes = treeObj.getSelectedNodes();
+                if (nodes.length < 1) {
+                    alert("请点击选择要增加下级的菜单节点");
+                    return;
+                }
+
+                if (nodes.length > 1) {
+                    alert("请选择一个需要增加下级的菜单节点");
+                    return;
+                }
+
+                var parentMenu = nodes[0];
+
+                clearForm('menuForm');
+                makeFormShowParentData(parentMenu.id, parentMenu.name);
+                makeFormEditable();
+            }
+
+            function deleteMenu() {
+                hideRMenu();
+
+                var ctx = $('#ctx').attr("href");
+                console.log("ctx = ", ctx);
+
+                var treeObj = $.fn.zTree.getZTreeObj("tree");
+                var nodes = treeObj.getSelectedNodes();
+                if (nodes.length < 1) {
+                    alert("请点击选择要删除的菜单节点");
                     return;
                 }
 
@@ -110,7 +225,6 @@
 
                         // 传递要open的节点id
                         var href = setOpenId2Href(menu.parentId);
-
                         window.location.href = href;
                     }
                 })
@@ -179,7 +293,119 @@
                 } else if (treeNode && !treeNode.noR) {
                     showRMenu("node", event.clientX, event.clientY, treeNode);
                 }
-            };
+            }
+
+            // 点击树节点
+            function ztreeOnClick(event, treeId, treeNode, clickFlag) {
+                console.debug(treeId, clickFlag);
+                if (clickFlag === 1) {
+                    console.debug("表单展示节点数据")
+                    // 选中树节点
+                    makeFormShowData(treeNode);
+                    makeFormReadOnly();
+                } else {
+                    console.debug("隐藏表单");
+                    // 取消选中节点
+                    makeFormHidden();
+                }
+            }
+
+            /**
+             * 表单展示数据
+             * @param treeNode  树节点数据
+             * @param parentName    父级菜单名称
+             */
+            function makeFormShowData(treeNode, parentName) {
+                $("input[name='id']").val(treeNode.id);
+                $("input[name='parentId']").val(treeNode.parentId);
+                $("input[name='name']").val(treeNode.name);
+                $("input[name='code']").val(treeNode.code);
+                $("input[name='completeCode']").val(treeNode.completeCode);
+                $("input[name='description']").val(treeNode.description);
+
+                $("input[name='parentName']").val(parentName);
+            }
+
+            // 显示表单，只读
+            function makeFormReadOnly() {
+                $("#formDiv").css("display", "block");
+                $("#completeCodeDiv").css("display", "block");
+
+                $("#parentNameDiv").css({"display": "none"});
+                $("span.inputNotNull").css({"display": "none"});
+                $("input[name='name']").attr("readonly", "readonly");
+                $("input[name='code']").attr("readonly", "readonly");
+                $("input[name='completeCode']").attr("readonly", "readonly");
+                $("input[name='description']").attr("readonly", "readonly");
+
+                $("#btnSave").css("display", "none");
+            }
+
+            // 显示表单，可编辑
+            function makeFormEditable() {
+                $("#formDiv").css("display", "block");
+
+                $("#parentNameDiv").css({"display": "block"});
+                $("span.inputNotNull").css({"display": ""});
+                $("input[name='name']").removeAttr("readonly");
+                $("input[name='code']").removeAttr("readonly");
+                $("input[name='completeCode']").attr("readonly", "readonly");
+                $("#completeCodeDiv").css("display", "none");
+                $("input[name='description']").removeAttr("readonly");
+
+                $("#btnSave").css("display", "block");
+            }
+
+            // 显示父级菜单的信息
+            function makeFormShowParentData(parentId, parentName) {
+                $("input[name='parentId']").val(parentId);
+                $("input[name='parentName']").val(parentName);
+            }
+
+            // 隐藏表单，会清空表单数据，方便后续复用
+            function makeFormHidden() {
+                $("#formDiv").css("display", "none");
+
+                clearForm('menuForm');
+            }
+
+            // 清空表单数据
+            function clearForm(id) {
+                var formObj = document.getElementById(id);
+                if (formObj === undefined) {
+                    return;
+                }
+
+                for (var i = 0; i < formObj.elements.length; i++) {
+                    if (formObj.elements[i].type === "text") {
+                        formObj.elements[i].value = "";
+                    }
+                    else if (formObj.elements[i].type === "hidden") {
+                        formObj.elements[i].value = "";
+                    }
+                    else if (formObj.elements[i].type === "password") {
+                        formObj.elements[i].value = "";
+                    }
+                    else if (formObj.elements[i].type === "radio") {
+                        formObj.elements[i].checked = false;
+                    }
+                    else if (formObj.elements[i].type === "checkbox") {
+                        formObj.elements[i].checked = false;
+                    }
+                    else if (formObj.elements[i].type === "select-one") {
+                        formObj.elements[i].options[0].selected = true;
+                    }
+                    else if (formObj.elements[i].type === "select-multiple") {
+                        for (var j = 0; j < formObj.elements[i].options.length; j++) {
+                            formObj.elements[i].options[j].selected = false;
+                        }
+                    }
+                    else if (formObj.elements[i].type === "textarea") {
+                        formObj.elements[i].value = "";
+                    }
+
+                }
+            }
 
             //显示右键菜单
             function showRMenu(type, x, y, treeNode) {
@@ -212,7 +438,8 @@
                         selectedMulti: false
                     },
                     callback: {
-                        onRightClick: zTreeOnRightClick
+                        onRightClick: zTreeOnRightClick,
+                        onClick: ztreeOnClick
                     },
                     data: {
                         simpleData: {
@@ -249,6 +476,55 @@
                     }
                 })
             });
+        </script>
+        <script>
+            /*ctrl c 复制选中节点的数据*/
+            $(document).ready(function () {
+                console.debug("自定义ctrl c")
+                //  监听 ctrl + c 事件
+                $('#tree').unbind('keydown').bind('keydown', function(e) {
+                    if (e.ctrlKey && e.keyCode === 67) {
+                        let treeeObj = $.fn.zTree.getZTreeObj("tree");
+                        let selectedNodes = treeeObj.getSelectedNodes();
+                        console.debug(selectedNodes);
+                        if (selectedNodes.length === 0) {
+                            return;
+                        }
+
+                        $('#copyInput').val(selectedNodes[0].name + "=" + selectedNodes[0].completeCode);
+                        // 模拟点击 复制 按钮
+                        $("#copyBtn").click();
+
+                        // 返回false, 防止重复触发copy事件
+                        return false;
+                    }
+                })
+
+                // 鼠标右键的复制事件
+                /*$(document).unbind('copy').bind('copy', function(e) {
+                    console.log('右键复制 监听成功');
+                    // 返回false, 防止重复触发copy事件
+                    return false;
+                });*/
+
+                // 创建一个实例对象，参数是一个选择器，绑定的是触发复制/剪切事件的标签
+                var clipboard = new ClipboardJS("#copyBtn");
+
+                // 成功回调
+                clipboard.on("success", function (e) {
+                    console.info("Action:", e.action); // 操作：copy或者cut
+                    console.info("Text:", e.text); // 复制/剪切的内容
+                    console.info("Trigger:", e.trigger); // 触发对象
+
+                    e.clearSelection();
+                });
+
+                // 失败回调
+                clipboard.on("error", function (e) {
+                    console.error("Action:", e.action); // 操作：copy或者cut
+                    console.error("Trigger:", e.trigger); // 触发对象
+                });
+            })
         </script>
     </body>
 </html>

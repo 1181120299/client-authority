@@ -1,29 +1,23 @@
 package com.jack.clientauthority.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.jack.clientauthority.dto.MenuDto;
+import com.jack.clientauthority.entity.Menu;
+import com.jack.clientauthority.service.MenuService;
 import com.jack.clientauthority.vo.MenuTreeNode;
+import com.jack.utils.web.R;
 import jakarta.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
 import javax.validation.constraints.NotNull;
-
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-
-
-
-import com.jack.clientauthority.entity.Menu;
-import com.jack.clientauthority.dto.MenuDto;
-import com.jack.clientauthority.service.MenuService;
-
-import com.jack.utils.web.R;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 应用菜单项
@@ -47,9 +41,7 @@ public class MenuController {
 		List<MenuTreeNode> treeNodeList = new ArrayList<>(menuList.size());
 		menuList.forEach(menu -> {
 			MenuTreeNode treeNode = new MenuTreeNode();
-			treeNode.setId(menu.getId());
-			treeNode.setParentId(menu.getParentId());
-			treeNode.setName(menu.getName());
+			BeanUtils.copyProperties(menu, treeNode);
 
 			treeNodeList.add(treeNode);
 		});
@@ -102,6 +94,19 @@ public class MenuController {
 		Menu menu = menuService.getById(id);
 		
 		return R.ok().setData(menu);
+	}
+
+	@PostMapping("/saveOrUpdate")
+	public R saveOrUpdate(@RequestBody @Validated MenuDto menuDto){
+		if (StringUtils.isEmpty(menuDto.getId())) {
+			// 新增
+			return this.save(menuDto);
+		} else {
+			// 修改
+			Menu menu = new Menu();
+			BeanUtils.copyProperties(menuDto, menu);
+			return this.update(menu);
+		}
 	}
 
 	/**

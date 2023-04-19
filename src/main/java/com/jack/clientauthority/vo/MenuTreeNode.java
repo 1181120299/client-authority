@@ -1,5 +1,6 @@
 package com.jack.clientauthority.vo;
 
+import com.jack.clientauthority.entity.Menu;
 import lombok.Data;
 import lombok.ToString;
 
@@ -8,9 +9,6 @@ import lombok.ToString;
  */
 @Data
 @ToString
-public class MenuTreeNode {
-    private String id;
-    private String parentId;
-    private String name;
+public class MenuTreeNode extends Menu {
     private boolean open;
 }

@@ -50,14 +50,11 @@ public class MenuDto {
 	/**
 	* 完整的菜单编码，即包含了父级菜单的编码。以/开头，英文字母
 	*/
-	@Length(max = 2000, message = "完整的菜单编码，即包含了父级菜单的编码。以/开头，英文字母最多2000个字符")
-	@NotBlank(message = "完整的菜单编码，即包含了父级菜单的编码。以/开头，英文字母不能为空")
 	private String completeCode;
 
 	/**
 	* 顺序，值越小排越前面
 	*/
-	@NotNull(message = "顺序，值越小排越前面不能为空")
 	private Integer sort;
 
 	/**
