@@ -43,6 +43,9 @@ public class SecurityConfig {
                 .logout(logout -> logout.logoutSuccessHandler(oidcLogoutSuccessHandler()));
 
         http.exceptionHandling().accessDeniedHandler(accessDeniedHandler);
+
+        http.oauth2ResourceServer()
+                .jwt();
         return http.build();
     }
 

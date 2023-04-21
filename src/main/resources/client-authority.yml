@@ -3,6 +3,9 @@ spring:
     cache: false
   security:
     oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${authserver}
       client:
         provider:
           jack-authorize:
