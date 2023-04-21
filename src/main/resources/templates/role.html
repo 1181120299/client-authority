@@ -143,6 +143,10 @@
         window.location.href = ctx + "role/associatePermission/" + id;
     }
 
+    function associateUser(id) {
+        window.location.href = ctx + "role/associateUser/" + id;
+    }
+
     function delClient(id, obj) {
         var clientId = $($(obj).parent().parent().children("td")[1]).text();
         console.info(clientId);

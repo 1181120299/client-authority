@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,6 +25,7 @@ public class PermissionHelper implements ApplicationContextAware {
     private static ApplicationContext ac;
 
     private static List<Permission> PERMISSION_CACHE = null;
+    private static boolean PERMISSION_CACHE_IS_INITIALIZED = false;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -42,7 +44,7 @@ public class PermissionHelper implements ApplicationContextAware {
      * @return  权限集合
      */
     public static List<Permission> getAllPermissions() {
-        if (CollectionUtils.isNotEmpty(PERMISSION_CACHE)) {
+        if (PERMISSION_CACHE_IS_INITIALIZED) {
             log.debug("get permission from cache");
             return PERMISSION_CACHE;
         }
@@ -72,8 +74,10 @@ public class PermissionHelper implements ApplicationContextAware {
                 Api api = beanObj.getClass().getAnnotation(Api.class);
                 if (api != null) {
                     String[] tags = api.tags();
-                    if (tags != null && tags.length > 0) {
-                        permission.setFromClassDesc(StringUtils.arrayToDelimitedString(tags, ", "));
+                    List<String> tagList = new ArrayList<>(Arrays.asList(tags));
+                    List<String> validTagList = tagList.stream().filter(StringUtils::hasText).toList();
+                    if (CollectionUtils.isNotEmpty(validTagList)) {
+                        permission.setFromClassDesc(StringUtils.arrayToDelimitedString(validTagList.toArray(), ", "));
                     } else if (StringUtils.hasText(api.value())) {
                         permission.setFromClassDesc(api.value());
                     } else {
@@ -89,6 +93,7 @@ public class PermissionHelper implements ApplicationContextAware {
         log.info("get permission by spring bean. cost time: {}ms", (endTime - startTime));
 
         PERMISSION_CACHE = permissionList;
+        PERMISSION_CACHE_IS_INITIALIZED = true;
         return permissionList;
     }
 }

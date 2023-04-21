@@ -1,0 +1,39 @@
+spring:
+  thymeleaf:
+    cache: false
+  security:
+    oauth2:
+      client:
+        provider:
+          jack-authorize:
+            issuer-uri: ${authserver}
+        registration:
+          jack-client-oidc:
+            provider: jack-authorize
+            client-id: ${client-id}
+            client-secret: ${client-secret}
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://${client-ip}:${server.port:8080}${server.servlet.context-path:}/login/oauth2/code/{registrationId}"
+            scope:
+              - openid
+              - profile
+            client-name: jack-client-oidc
+          jack-client-authorization-code:
+            provider: jack-authorize
+            client-id: ${client-id}
+            client-secret: ${client-secret}
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://${client-ip}:${server.port:8080}${server.servlet.context-path:}/authorized"
+            scope:
+              - message.read
+              - message.write
+            client-name: jack-client-authorization-code
+          jack-client-client-credentials:
+            provider: jack-authorize
+            client-id: ${client-id}
+            client-secret: ${client-secret}
+            authorization-grant-type: client_credentials
+            scope:
+              - message.read
+              - message.write
+            client-name: jack-client-client-credentials

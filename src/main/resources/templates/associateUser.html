@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+    <head>
+        <title>Spring Security OAuth 2.0 Sample</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.css" th:href="@{/webjars/bootstrap/css/bootstrap.css}" />
+        <link rel="stylesheet" th:href="@{/webjars/github-com-zTree-zTree_v3/zTreeStyle/zTreeStyle.css}"/>
+        <style>
+            table select {
+                width:200px;
+                height:300px !important;
+                float:left;
+                border:4px #A0A0A4 outset;
+                padding:4px;
+            }
+
+            .operateBtn{
+                font-weight: bold;
+                width: 40px;
+                margin-top: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div th:fragment="header">
+            <nav class="navbar navbar-default">
+                <div class="container-fluid">
+                    <div class="collapse navbar-collapse">
+                        <form class="navbar-form navbar-left" th:action="@{/role/page}" method="get">
+                            <button type="submit" class="btn btn-default navbar-btn">返回</button>
+                        </form>
+                        <form class="navbar-form navbar-right" th:action="@{/role/page}" method="get">
+                            <button class="btn btn-primary navbar-btn" type="button" onclick="savePermission()">保存</button>
+                        </form>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div class="container">
+            <div th:if="${error}" class="alert alert-danger alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 th:text="${error}" class="text-center"></h4>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">分配角色用户：[[${role.name}]]</h3>
+                </div>
+
+                <table width="500" align="center" border="0" cellpadding="0" cellspacing="0" class="newContTab">
+                    <tr>
+                        <th>　</th>
+                        <td>
+                            <div>
+                                <div class="row" style="margin-top: 10px; margin-bottom: 10px">
+                                    <div class="col-lg-6">
+                                        <div class="input-group">
+                                              <span class="input-group-btn">
+                                                  <button id="leftBtn" class="btn btn-default" type="button">查询</button>
+                                              </span>
+                                            <input id="leftInput" type="text" class="form-control" placeholder="未添加的用户">
+                                        </div><!-- /input-group -->
+                                    </div><!-- /.col-lg-6 -->
+                                    <div class="col-lg-6">
+                                        <div class="input-group">
+                                            <input id="rightInput" type="text" class="form-control" placeholder="已添加的用户">
+                                            <span class="input-group-btn">
+                                                <button id="rightBtn" class="btn btn-default" type="button">查询</button>
+                                            </span>
+                                        </div><!-- /input-group -->
+                                    </div><!-- /.col-lg-6 -->
+                                </div><!-- /.row -->
+                                <div>
+                                    <select multiple="multiple" id="leftSelect">
+                                    </select>
+                                </div>
+                                <div id="#operateDiv" style="float:left; padding: 10px; margin-top: 40px">
+                                    <input id="add_all" type="button" class="btn btn-primary operateBtn" value=">>"/><br />
+                                    <input id="add" type="button" class="btn btn-primary operateBtn" value=">"/><br />
+                                    <input id="remove" type="button" class="btn btn-info operateBtn" value="<"/><br />
+                                    <input id="remove_all" type="button" class="btn btn-info operateBtn" value="<<"/>
+                                </div>
+                                <div>
+                                    <select multiple="multiple" id="rightSelect">
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+
+                <div th:if="${messages}" class="panel-footer">
+                    <h4>Messages:</h4>
+                    <table class="table table-condensed">
+                        <tbody>
+                            <tr class="row" th:each="message : ${messages}">
+                                <td th:text="${message}">message</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <a id="ctx" style="display: none" th:href="@{/}"></a>
+
+        <input id="id" type="hidden" th:value="${role.getId()}">
+
+        <script src="/webjars/jquery/jquery.min.js" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+        <script src="/webjars/bootstrap/js/bootstrap.min.js" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+        <script type="text/javascript" >
+            var ctx = $('#ctx').attr("href");
+            console.log("ctx = ", ctx);
+
+            var leftSet = new Set(['jack', '陈家宝', '陈大帅']);
+            var rightSet = new Set(['靓仔', '程序猿']);
+        </script>
+        <script type="text/javascript">
+            function renderSelect() {
+                var leftText = $('#leftInput').val();
+                searchLeft(leftText);
+
+                var rightText = $('#rightInput').val();
+                searchRight(rightText);
+            }
+
+            //下拉框交换JQuery
+            $(function(){
+                //移到右边
+                $('#add').click(function() {
+                    //获取选中的选项，删除并追加给对方
+                    var $options = $('#leftSelect option:selected');
+                    for(var option of $options) {
+                        var item = option.value;
+                        leftSet.delete(item);
+                        rightSet.add(item)
+                    }
+
+                    renderSelect();
+                });
+
+                //移到左边
+                $('#remove').click(function() {
+                    var $options = $('#rightSelect option:selected');
+                    for(var option of $options) {
+                        var item = option.value;
+                        leftSet.add(item);
+                        rightSet.delete(item)
+                    }
+
+                    renderSelect();
+                });
+
+                //全部移到右边
+                $('#add_all').click(function() {
+                    //获取全部的选项,删除并追加给对方
+                    for(var item of leftSet) {
+                        rightSet.add(item);
+                    }
+                    leftSet.clear();
+
+                    renderSelect();
+                });
+
+                //全部移到左边
+                $('#remove_all').click(function() {
+                    for(var item of rightSet) {
+                        leftSet.add(item);
+                    }
+                    rightSet.clear();
+
+                    renderSelect();
+                });
+
+                //双击选项
+                $('#leftSelect').dblclick(function(){ //绑定双击事件
+                    //获取全部的选项,删除并追加给对方
+                    var $options = $("option:selected",this)
+                    for(var option of $options) {
+                        var item = option.value;
+                        leftSet.delete(item);
+                        rightSet.add(item)
+                    }
+
+                    renderSelect();
+                });
+
+                //双击选项
+                $('#rightSelect').dblclick(function(){
+                    var $options = $("option:selected",this)
+                    for(var option of $options) {
+                        var item = option.value;
+                        leftSet.add(item);
+                        rightSet.delete(item)
+                    }
+
+                    renderSelect();
+                });
+            });
+        </script>
+
+        <script type="text/javascript">
+            $(function () {
+                $('#leftBtn').click(function () {
+                    var leftInputValue = $('#leftInput').val();
+                    searchLeft(leftInputValue);
+                })
+
+                $('#leftInput').on('input', function () {
+                    console.debug(this.value);
+                    searchLeft(this.value);
+                })
+
+                $('#rightBtn').click(function () {
+                    var rightInputValue = $('#rightInput').val();
+                    searchRight(rightInputValue);
+                })
+
+                $('#rightInput').on('input', function () {
+                    console.debug(this.value);
+                    searchRight(this.value);
+                })
+            })
+
+            function searchLeft(text) {
+                $('#leftSelect option').remove();
+
+                var regexp = new RegExp(text, "i");     // i 忽略大小写
+                for(var item of leftSet) {
+                    if (regexp.test(item)) {
+                        $('#leftSelect').append('<option value="' + item + '">' + item + '</option>');
+                    }
+                }
+            }
+
+            function searchRight(text) {
+                $('#rightSelect option').remove();
+
+                var regexp = new RegExp(text, "i");     // i 忽略大小写
+                for(var item of rightSet) {
+                    if (regexp.test(item)) {
+                        $('#rightSelect').append('<option value="' + item + '">' + item + '</option>');
+                    }
+                }
+            }
+        </script>
+
+        <script type="text/javascript">
+            $(function () {
+                $.ajax({
+                    type: 'GET',
+                    url: ctx + 'role/getRoleUser?id=' + $('#id').val(),
+                    async: false,
+                    error: function () {
+                        alert("请求失败");
+                    },
+                    success: function (resp) {
+                        rightSet.clear();
+                        for (var item of resp.data) {
+                            rightSet.add(item);
+                        }
+                    }
+                });
+
+                $.ajax({
+                    type: 'GET',
+                    url: ctx + 'role/getUserList',
+                    async: false,
+                    error: function () {
+                        alert("请求失败");
+                    },
+                    success: function (resp) {
+                        leftSet.clear();
+                        for (const item of resp.data) {
+                            leftSet.add(item);
+                        }
+
+                        for (const item of rightSet) {
+                            leftSet.delete(item);
+                        }
+
+                        renderSelect();
+                    }
+                });
+            })
+        </script>
+    </body>
+</html>

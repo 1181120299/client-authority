@@ -6,9 +6,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.jack.clientauthority.dto.RoleDto;
 import com.jack.clientauthority.entity.Role;
 import com.jack.clientauthority.entity.RolePermission;
+import com.jack.clientauthority.entity.RoleUser;
 import com.jack.clientauthority.processor.PermissionHelper;
 import com.jack.clientauthority.service.RolePermissionService;
 import com.jack.clientauthority.service.RoleService;
+import com.jack.clientauthority.service.RoleUserService;
 import com.jack.clientauthority.vo.Permission;
 import com.jack.utils.web.R;
 import jakarta.annotation.Resource;
@@ -45,6 +47,8 @@ public class RoleController {
 	private RoleService roleService;
 	@Autowired
 	private RolePermissionService rolePermissionService;
+	@Autowired
+	private RoleUserService roleUserService;
 
 	/**
 	 * 列表
@@ -123,6 +127,17 @@ public class RoleController {
 	}
 
 	/**
+	 * 返回角色用户分配页面
+	 */
+	@GetMapping("/associateUser/{id}")
+	public String associateUser(@PathVariable("id") String id, Model model) {
+		// 角色信息
+		Role role = roleService.getById(id);
+		model.addAttribute("role", role);
+		return "associateUser";
+	}
+
+	/**
 	 * 返回角色分配权限的页面
 	 */
 	@GetMapping("/associatePermission/{id}")
@@ -135,7 +150,7 @@ public class RoleController {
 
 	@GetMapping("/getPermissionTreeData")
 	@ResponseBody
-	public R getPermissionTreeData(String id) {
+	public R getPermissionTreeData(@RequestParam String id) {
 		// 所有权限信息
 		List<Permission> allPermissionList = PermissionHelper.getAllPermissions();
 
@@ -146,6 +161,23 @@ public class RoleController {
 		List<TreeNode> treeNodeList = generatePermissionTreeData(allPermissionList, alreadyAssociatedPermissionList);
 
 		return R.ok().setData(treeNodeList);
+	}
+
+	@GetMapping("/getRoleUser")
+	@ResponseBody
+	public R getRoleUser(@RequestParam String id) {
+		List<RoleUser> roleUserList = roleUserService.list(new LambdaQueryWrapper<RoleUser>()
+				.eq(RoleUser::getRoleId, id));
+		List<String> usernameList = roleUserList.stream()
+				.map(RoleUser::getUsername)
+				.toList();
+		return R.ok().setData(usernameList);
+	}
+
+	@GetMapping("/getUserList")
+	@ResponseBody
+	public R getUserList() {
+		return R.ok().setData(Arrays.asList("陈家宝", "jack", "java"));
 	}
 
 	/**
@@ -219,18 +251,23 @@ public class RoleController {
 	 * 从上往下，由根节点找到枝叶。然后再从下往上，根据枝叶的所有兄弟节点是否都checked，决定枝叶的上一级节点是否checked
 	 *
 	 * <p></p>
+	 *
+	 * 如果一个节点，它的所有子节点都checked。那么它处于close状态。如果有子节点没有勾选，则处于open状态。
+	 * 有一点例外：根节点一直处于open状态。
+	 *
+	 * <p></p>
 	 * @param treeNodeList	所有的节点
-	 * @param parentNode	父节点
+	 * @param rootNode	根节点
 	 */
-	private void ensureTreeNodeChecked(List<TreeNode> treeNodeList, TreeNode parentNode) {
-		Assert.notNull(parentNode, "parentNode can not be null");
+	private void ensureTreeNodeChecked(List<TreeNode> treeNodeList, TreeNode rootNode) {
+		Assert.notNull(rootNode, "rootNode can not be null");
 		if (CollectionUtils.isEmpty(treeNodeList)) {
 			return;
 		}
 
 		// 找到枝叶节点
 		List<TreeNode> childNodeList = new ArrayList<>();
-		findAllLeafNode(childNodeList, treeNodeList, parentNode);
+		findAllLeafNode(childNodeList, treeNodeList, rootNode);
 		if (CollectionUtils.isEmpty(childNodeList)) {
 			return;
 		}
@@ -240,6 +277,8 @@ public class RoleController {
 				.collect(Collectors.groupingBy(TreeNode::getParentId));
 		Map<String, TreeNode> allNodesCache = treeNodeList.stream().collect(Collectors.toMap(TreeNode::getId, Function.identity()));
 		ensureGroup(byParentMap, allNodesCache);
+
+		rootNode.setOpen(true);
 	}
 
 	private void findAllLeafNode(List<TreeNode> childNodeList, List<TreeNode> allNodeCache, TreeNode parentNode) {
@@ -262,10 +301,13 @@ public class RoleController {
 			List<TreeNode> notCheckedList = childNodeList.stream()
 					.filter(node -> !node.isChecked())
 					.toList();
-			if (CollectionUtils.isEmpty(notCheckedList)) {
-				TreeNode parentNode = nodeCache.get(parentId);
-				if (parentNode != null) {
+			TreeNode parentNode = nodeCache.get(parentId);
+			if (parentNode != null) {
+				if (CollectionUtils.isEmpty(notCheckedList)) {
 					parentNode.setChecked(true);
+					parentNode.setOpen(false);
+				} else {
+					parentNode.setOpen(true);
 				}
 			}
 		});
