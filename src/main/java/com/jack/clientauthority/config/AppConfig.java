@@ -1,7 +1,9 @@
 package com.jack.clientauthority.config;
 
 import com.jack.clientauthority.annotation.ClientAccessUsernameStrategy;
+import com.jack.clientauthority.annotation.HomePageProvider;
 import com.jack.clientauthority.annotation.defaultImpl.ClientAccessUsernameStrategyImpl;
+import com.jack.clientauthority.annotation.defaultImpl.DefaultHomePageController;
 import com.jack.clientauthority.processor.CustomAccessDeniedHandler;
 import com.jack.clientauthority.service.UserDetailService;
 import com.jack.clientauthority.service.impl.RemoteUserDetailServiceImpl;
@@ -44,5 +46,11 @@ public class AppConfig {
     @ConditionalOnMissingBean(ClientAccessUsernameStrategy.class)
     public ClientAccessUsernameStrategyImpl defaultClientAccessUsernameStrategyImpl() {
         return new ClientAccessUsernameStrategyImpl();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(HomePageProvider.class)
+    public DefaultHomePageController defaultHomePageController() {
+        return new DefaultHomePageController();
     }
 }
