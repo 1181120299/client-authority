@@ -44,9 +44,9 @@ public class UserHelper {
      * 此方法只能做到获取已认证授权的用户名，无法获取用户的其他信息。
      *
      * <p></p>
-     * @param userClass
-     * @param column
-     * @return
+     * @param userClass 用户类
+     * @param column    用户名的字段（例如：User::getUsername）
+     * @return  用户实体
      */
     public static <T, R> T assembleUser(Class<T> userClass, EntityLambdaUtils.Column<T, R> column) {
         SecurityContext context = SecurityContextHolder.getContext();
