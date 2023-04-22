@@ -16,7 +16,7 @@ spring:
             client-id: ${client-id}
             client-secret: ${client-secret}
             authorization-grant-type: authorization_code
-            redirect-uri: "http://${client-ip}:${server.port:8080}${server.servlet.context-path:}/login/oauth2/code/{registrationId}"
+            redirect-uri: "http://${client-ip:127.0.0.1}:${server.port:8080}${server.servlet.context-path:}/login/oauth2/code/{registrationId}"
             scope:
               - openid
               - profile
@@ -26,7 +26,7 @@ spring:
             client-id: ${client-id}
             client-secret: ${client-secret}
             authorization-grant-type: authorization_code
-            redirect-uri: "http://${client-ip}:${server.port:8080}${server.servlet.context-path:}/authorized"
+            redirect-uri: "http://${client-ip:127.0.0.1}:${server.port:8080}${server.servlet.context-path:}/authorized"
             scope:
               - message.read
               - message.write
