@@ -16,7 +16,7 @@ import java.io.IOException;
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
-        log.info("access deny: {}", accessDeniedException.getMessage());
+        log.info("Access deny: {}", accessDeniedException.getMessage());
         response.setContentType("application/json;charset=utf-8");
         String message = accessDeniedException.getMessage();
         R error = R.error(StringUtils.hasText(message) ? message : "您没有访问权限");
