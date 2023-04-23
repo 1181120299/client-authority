@@ -39,8 +39,6 @@ public class NeedPermissionProcessor {
     private RoleUserMapper roleUserMapper;
     @Autowired
     private RolePermissionMapper rolePermissionMapper;
-    @Autowired
-    private ClientAccessUsernameStrategy clientAccessUsernameStrategy;
 
     @Pointcut("@annotation(com.jack.clientauthority.annotation.NeedPermission)")
     public void NeedPermission() {}
@@ -76,40 +74,7 @@ public class NeedPermissionProcessor {
 
     // 获取用户名
     private String getUsername() {
-        try {
-            RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-            ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) requestAttributes;
-            assert servletRequestAttributes != null;
-            HttpServletRequest request = servletRequestAttributes.getRequest();
-            String username = request.getHeader(WebClientHelper.JACK_OAUTH2_USERNAME_HEADER);
-            if (StringUtils.hasText(username)) {
-                log.debug("Got username from header, username: {}", username);
-                if (ClientAccessUsernameStrategy.Strategy.REAL_AUTHENTICATED_USER.equals(clientAccessUsernameStrategy.strategy())) {
-                    updateAuthenticationName(username);
-                }
-
-                return username;
-            }
-        } catch (Exception e) {
-            log.info("Can`t find username in the header, maybe not set or is not a HttpRequest.");
-        }
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication.getName();
-    }
-
-    // 更新Authentication中的用户名
-    private void updateAuthenticationName(String username) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (Objects.isNull(authentication)) {
-            return;
-        }
-
-        if (authentication instanceof JwtAuthenticationToken jwtAuthenticationToken) {
-            Field nameField = ReflectionUtils.findField(jwtAuthenticationToken.getClass(), "name");
-            assert nameField != null;
-            ReflectionUtils.makeAccessible(nameField);
-            ReflectionUtils.setField(nameField, jwtAuthenticationToken, username);
-        }
     }
 }

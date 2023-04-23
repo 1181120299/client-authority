@@ -50,7 +50,12 @@ public class AppConfig {
 
     @Bean
     @ConditionalOnMissingBean(HomePageProvider.class)
-    public DefaultHomePageController defaultHomePageController() {
+    public DefaultHomePageController clientAuthorityDefaultHomePageController() {
         return new DefaultHomePageController();
+    }
+
+    @Bean
+    public UsernameProcessingFilter usernameProcessingFilter() {
+        return new UsernameProcessingFilter();
     }
 }
