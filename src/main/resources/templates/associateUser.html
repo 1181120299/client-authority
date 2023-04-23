@@ -32,7 +32,7 @@
                             <button type="submit" class="btn btn-default navbar-btn">返回</button>
                         </form>
                         <form class="navbar-form navbar-right" th:action="@{/role/page}" method="get">
-                            <button class="btn btn-primary navbar-btn" type="button" onclick="savePermission()">保存</button>
+                            <button class="btn btn-primary navbar-btn" type="button" onclick="saveRoleUser()">保存</button>
                         </form>
                     </div>
                 </div>
@@ -285,6 +285,38 @@
                     }
                 });
             })
+        </script>
+        <script type="text/javascript">
+            // 保存角色用户
+            function saveRoleUser() {
+                let roleId = $('#id').val();
+                let usernameArray = [];
+                for (let option of $('#rightSelect option')) {
+                    usernameArray.push($(option).val());
+                }
+
+                let paramObj = {};
+                paramObj['roleId'] = roleId;
+                paramObj['usernames'] = usernameArray.join(",");
+
+                $.ajax({
+                    type: "POST",
+                    url: ctx + "role/saveRoleUser",
+                    data: JSON.stringify(paramObj),
+                    dataType: "json",
+                    contentType: "application/json",
+                    error: function () {
+                        alert("登录已过期");
+                    },
+                    success: function (data) {
+                        console.debug(data);
+                        alert(data.retMsg);
+                        if (data.retCode === 2000) {
+                            window.location.href = ctx + "role/page";
+                        }
+                    }
+                })
+            }
         </script>
     </body>
 </html>

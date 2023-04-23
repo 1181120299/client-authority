@@ -11,6 +11,7 @@ import com.jack.clientauthority.processor.PermissionHelper;
 import com.jack.clientauthority.service.RolePermissionService;
 import com.jack.clientauthority.service.RoleService;
 import com.jack.clientauthority.service.RoleUserService;
+import com.jack.clientauthority.service.UserDetailService;
 import com.jack.clientauthority.vo.Permission;
 import com.jack.utils.web.R;
 import jakarta.annotation.Resource;
@@ -19,6 +20,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.Assert;
@@ -49,6 +51,8 @@ public class RoleController {
 	private RolePermissionService rolePermissionService;
 	@Autowired
 	private RoleUserService roleUserService;
+	@Autowired
+	private UserDetailService userDetailService;
 
 	/**
 	 * 列表
@@ -174,10 +178,31 @@ public class RoleController {
 		return R.ok().setData(usernameList);
 	}
 
+	/**
+	 * 获取所有的用户名
+	 * @return	用户名集合
+	 */
 	@GetMapping("/getUserList")
 	@ResponseBody
 	public R getUserList() {
-		return R.ok().setData(Arrays.asList("陈家宝", "jack", "java"));
+		List<String> usernameList = userDetailService.usernameList();
+		return R.ok().setData(usernameList);
+	}
+
+	/**
+	 * 保存为角色选择的用户
+	 * @param paramMap	roleId：角色id。usernames：用户名，多个用英文逗号拼接
+	 * @return	处理结果
+	 */
+	@PostMapping("/saveRoleUser")
+	@ResponseBody
+	public R saveRoleUser(@RequestBody Map<String, Object> paramMap) {
+		String roleId = MapUtils.getString(paramMap, "roleId");
+		String usernames = MapUtils.getString(paramMap, "usernames");
+
+		String[] usernameArray = StringUtils.delimitedListToStringArray(usernames, ",");
+		roleUserService.saveRoleUser(roleId, usernameArray);
+		return R.ok();
 	}
 
 	/**

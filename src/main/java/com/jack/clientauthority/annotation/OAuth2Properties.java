@@ -1,7 +1,9 @@
 package com.jack.clientauthority.annotation;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+@Data
 @ConfigurationProperties(prefix = "jack.oauth2")
 public class OAuth2Properties {
 
