@@ -2,6 +2,7 @@ package com.jack.clientauthority.config;
 
 import com.jack.clientauthority.annotation.ClientAccessUsernameStrategy;
 import com.jack.clientauthority.annotation.HomePageProvider;
+import com.jack.clientauthority.annotation.OAuth2Properties;
 import com.jack.clientauthority.annotation.defaultImpl.ClientAccessUsernameStrategyImpl;
 import com.jack.clientauthority.annotation.defaultImpl.DefaultHomePageController;
 import com.jack.clientauthority.processor.CustomAccessDeniedHandler;
@@ -10,12 +11,14 @@ import com.jack.clientauthority.service.impl.RemoteUserDetailServiceImpl;
 import com.jack.clientauthority.utils.WebClientHelper;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
+@EnableConfigurationProperties(OAuth2Properties.class)
 public class AppConfig {
 
     @Bean

@@ -1,0 +1,43 @@
+{"groups": [
+  {
+    "name": "jack.oauth2",
+    "type": "com.jack.clientauthority.annotation.OAuth2Properties",
+    "sourceType": "com.jack.clientauthority.annotation.OAuth2Properties"
+  }
+],"properties": [
+  {
+    "name": "jack.oauth2.auth-server-uri",
+    "type": "java.lang.String",
+    "sourceType": "com.jack.clientauthority.annotation.OAuth2Properties",
+    "description": "授权服务的地址，例如：http://ip:port/contextPath，注意：后面不不不要加斜杠/.",
+    "defaultValue": ""
+  },
+  {
+    "name": "jack.oauth2.resource-server-uri",
+    "type": "java.lang.String",
+    "sourceType": "com.jack.clientauthority.annotation.OAuth2Properties",
+    "description": "资源服务的地址，例如：http://ip:port/contextPath，注意：后面不不不要加斜杠/.",
+    "defaultValue": ""
+  },
+  {
+    "name": "jack.oauth2.client-id",
+    "type": "java.lang.String",
+    "sourceType": "com.jack.clientauthority.annotation.OAuth2Properties",
+    "description": "在授权服务器上注册的OAuth client的id（应用名称）.",
+    "defaultValue": ""
+  },
+  {
+    "name": "jack.oauth2.client-secret",
+    "type": "java.lang.String",
+    "sourceType": "com.jack.clientauthority.annotation.OAuth2Properties",
+    "description": "在授权服务器上注册的OAuth client的秘钥.",
+    "defaultValue": ""
+  },
+  {
+    "name": "jack.oauth2.client-ip",
+    "type": "java.lang.String",
+    "sourceType": "com.jack.clientauthority.annotation.OAuth2Properties",
+    "description": "当前应用部署的服务器ip，需要和授权服务器上注册的OAuth client回调地址中的ip保持一致.",
+    "defaultValue": ""
+  }
+]}

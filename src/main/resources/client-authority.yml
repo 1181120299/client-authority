@@ -5,36 +5,36 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${authserver}
+          issuer-uri: ${jack.oauth2.auth-server-uri}
       client:
         provider:
           jack-authorize:
-            issuer-uri: ${authserver}
+            issuer-uri: ${jack.oauth2.auth-server-uri}
         registration:
           jack-client-oidc:
             provider: jack-authorize
-            client-id: ${client-id}
-            client-secret: ${client-secret}
+            client-id: ${jack.oauth2.client-id}
+            client-secret: ${jack.oauth2.client-secret}
             authorization-grant-type: authorization_code
-            redirect-uri: "http://${client-ip:127.0.0.1}:${server.port:8080}${server.servlet.context-path:}/login/oauth2/code/{registrationId}"
+            redirect-uri: "http://${jack.oauth2.client-ip:127.0.0.1}:${server.port:8080}${server.servlet.context-path:}/login/oauth2/code/{registrationId}"
             scope:
               - openid
               - profile
             client-name: jack-client-oidc
           jack-client-authorization-code:
             provider: jack-authorize
-            client-id: ${client-id}
-            client-secret: ${client-secret}
+            client-id: ${jack.oauth2.client-id}
+            client-secret: ${jack.oauth2.client-secret}
             authorization-grant-type: authorization_code
-            redirect-uri: "http://${client-ip:127.0.0.1}:${server.port:8080}${server.servlet.context-path:}/authorized"
+            redirect-uri: "http://${jack.oauth2.client-ip:127.0.0.1}:${server.port:8080}${server.servlet.context-path:}/authorized"
             scope:
               - message.read
               - message.write
             client-name: jack-client-authorization-code
           jack-client-client-credentials:
             provider: jack-authorize
-            client-id: ${client-id}
-            client-secret: ${client-secret}
+            client-id: ${jack.oauth2.client-id}
+            client-secret: ${jack.oauth2.client-secret}
             authorization-grant-type: client_credentials
             scope:
               - message.read
