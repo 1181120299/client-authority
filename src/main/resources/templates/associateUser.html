@@ -258,7 +258,7 @@
                     },
                     success: function (resp) {
                         rightSet.clear();
-                        for (var item of resp.data) {
+                        for (var item of resp.fixedData) {
                             rightSet.add(item);
                         }
                     }
@@ -273,7 +273,7 @@
                     },
                     success: function (resp) {
                         leftSet.clear();
-                        for (const item of resp.data) {
+                        for (const item of resp.fixedData) {
                             leftSet.add(item);
                         }
 
@@ -310,8 +310,8 @@
                     },
                     success: function (data) {
                         console.debug(data);
-                        alert(data.retMsg);
-                        if (data.retCode === 2000) {
+                        alert(data.fixedMsg);
+                        if (data.fixedCode === 200) {
                             window.location.href = ctx + "role/page";
                         }
                     }

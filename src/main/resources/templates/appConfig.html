@@ -42,20 +42,5 @@
         </div>
         <script src="/webjars/jquery/jquery.min.js" th:src="@{/webjars/jquery/jquery.min.js}"></script>
         <script src="/webjars/bootstrap/js/bootstrap.min.js" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
-        <script>
-            function doSomething() {
-                $.ajax({
-                    type: "GET",
-                    url: "/book/jump/doSomething",
-                    success: function (data) {
-                        console.info(data);
-                        alert(data.retMsg);
-                    },
-                    error: function () {
-                        alert("请求失败");
-                    }
-                })
-            }
-        </script>
     </body>
 </html>

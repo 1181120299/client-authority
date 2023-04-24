@@ -118,8 +118,8 @@
                     },
                     success: function (data) {
                         console.info(data);
-                        alert(data.retMsg);
-                        if (data.retCode === 2000) {
+                        alert(data.fixedMsg);
+                        if (data.fixedCode === 200) {
                             // 传递要open的节点id
                             window.location.href = setOpenId2Href(param.parentId);
                         }
@@ -471,7 +471,7 @@
                     },
                     success: function (data) {
                         console.info(data);
-                        zTreeNodes = data.data;
+                        zTreeNodes = data.fixedData;
                         zTreeObj = $.fn.zTree.init($("#tree"), setting, zTreeNodes);
                     }
                 })

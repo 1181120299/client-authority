@@ -110,7 +110,7 @@
                     success: function (data) {
                         console.info(data);
 
-                        zTreeNodes = data.data;
+                        zTreeNodes = data.fixedData;
                         zTreeObj = $.fn.zTree.init($("#tree"), setting, zTreeNodes);
                     }
                 })
@@ -142,8 +142,8 @@
                     },
                     success: function (data) {
                         console.debug(data);
-                        alert(data.retMsg);
-                        if (data.retCode === 2000) {
+                        alert(data.fixedMsg);
+                        if (data.fixedCode === 200) {
                             window.location.href = ctx + "role/page";
                         }
                     }

@@ -1,4 +1,5 @@
 com.jack.clientauthority.processor.NeedPermissionProcessor
+com.jack.clientauthority.processor.FixedResponseProcessor
 com.jack.clientauthority.config.AppConfig
 com.jack.clientauthority.config.MybatisPlusPageConfig
 com.jack.clientauthority.config.SecurityConfig
@@ -14,3 +15,4 @@ com.jack.clientauthority.service.impl.RoleServiceImpl
 com.jack.clientauthority.service.impl.RoleUserServiceImpl
 com.jack.clientauthority.controller.MenuController
 com.jack.clientauthority.controller.RoleController
+com.jack.clientauthority.config.GlobalExceptionHandler

@@ -46,8 +46,8 @@
             },
             success: function (data) {
                 console.info(data);
-                alert(data.retMsg);
-                if (data.retCode === 2000) {
+                alert(data.fixedMsg);
+                if (data.fixedCode === 200) {
                     location.href = ctx + "role/page"
                 }
             }
@@ -92,10 +92,10 @@
                     console.info("没有找到提示信息DOM对象");
                 }
 
-                if (data.retCode === 2000) {
-                    tip.text(data.retMsg).css("color", "green");
+                if (data.fixedCode === 200) {
+                    tip.text(data.fixedMsg).css("color", "green");
                 } else {
-                    tip.text(data.retMsg).css("color", "red");
+                    tip.text(data.fixedMsg).css("color", "red");
                 }
             }
         })
