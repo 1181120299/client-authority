@@ -3,6 +3,7 @@ package com.jack.clientauthority.annotation;
 import com.jack.clientauthority.service.UserDetailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 
 @Slf4j
@@ -18,4 +19,7 @@ public class UserCache {
         log.debug("Request user info. username = {}", username);
         return userDetailService.findByUsername(username, userClass);
     }
+
+    @CacheEvict(value = USER_CACHE, allEntries = true)
+    public void clear() {}
 }

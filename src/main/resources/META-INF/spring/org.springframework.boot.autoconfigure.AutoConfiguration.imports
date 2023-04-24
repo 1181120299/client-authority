@@ -3,6 +3,7 @@ com.jack.clientauthority.config.AppConfig
 com.jack.clientauthority.config.MybatisPlusPageConfig
 com.jack.clientauthority.config.SecurityConfig
 com.jack.clientauthority.config.WebClientConfig
+com.jack.clientauthority.config.ClientRabbitConfig
 com.jack.clientauthority.processor.CustomAccessDeniedHandler
 com.jack.clientauthority.processor.PermissionHelper
 com.jack.clientauthority.controller.AppConfigController
