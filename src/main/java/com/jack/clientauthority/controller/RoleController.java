@@ -280,7 +280,7 @@ public class RoleController {
 	 * @param username	用户名
 	 * @return	菜单信息
 	 */
-	@GetMapping("/getUserMenu")
+	@GetMapping("/getUserMenus")
 	@ResponseBody
 	public R getUserMenus(@NotBlank(message = "用户名不能为空") String username) {
 		List<Menu> menuList = Collections.emptyList();
