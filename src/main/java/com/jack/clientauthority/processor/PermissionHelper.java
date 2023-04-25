@@ -3,6 +3,7 @@ package com.jack.clientauthority.processor;
 import com.jack.clientauthority.annotation.NeedPermission;
 import com.jack.clientauthority.vo.Permission;
 import io.swagger.annotations.Api;
+import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.BeansException;
@@ -43,6 +44,7 @@ public class PermissionHelper implements ApplicationContextAware {
      *
      * @return  权限集合
      */
+    @Nonnull
     public static List<Permission> getAllPermissions() {
         if (PERMISSION_CACHE_IS_INITIALIZED) {
             log.debug("get permission from cache");

@@ -4,18 +4,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.jack.clientauthority.dto.RoleDto;
-import com.jack.clientauthority.entity.Role;
-import com.jack.clientauthority.entity.RolePermission;
-import com.jack.clientauthority.entity.RoleUser;
+import com.jack.clientauthority.entity.*;
 import com.jack.clientauthority.processor.PermissionHelper;
-import com.jack.clientauthority.service.RolePermissionService;
-import com.jack.clientauthority.service.RoleService;
-import com.jack.clientauthority.service.RoleUserService;
-import com.jack.clientauthority.service.UserDetailService;
+import com.jack.clientauthority.service.*;
 import com.jack.clientauthority.vo.Permission;
 import com.jack.utils.web.R;
 import jakarta.annotation.Resource;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.BeanUtils;
@@ -40,12 +37,13 @@ import java.util.stream.Collectors;
  * @email 1181120299@qq.com
  * @date 2023-04-17 21:00:36
  */
+@Slf4j
 @Validated
 @Controller
 @RequestMapping("/role")
 public class RoleController {
 
-	@Resource
+	@Autowired
 	private RoleService roleService;
 	@Autowired
 	private RolePermissionService rolePermissionService;
@@ -53,6 +51,10 @@ public class RoleController {
 	private RoleUserService roleUserService;
 	@Autowired
 	private UserDetailService userDetailService;
+	@Autowired
+	private RoleMenuService roleMenuService;
+	@Autowired
+	private MenuService menuService;
 
 	/**
 	 * 列表
@@ -203,6 +205,79 @@ public class RoleController {
 		String[] usernameArray = StringUtils.delimitedListToStringArray(usernames, ",");
 		roleUserService.saveRoleUser(roleId, usernameArray);
 		return R.ok();
+	}
+
+	/**
+	 * 获取用户可以访问的菜单
+	 * @param username	用户名
+	 * @return	菜单信息
+	 */
+	@GetMapping("/getUserMenu")
+	@ResponseBody
+	public R getUserMenus(@NotBlank(message = "用户名不能为空") String username) {
+		List<Menu> menuList = Collections.emptyList();
+		List<RoleUser> roleUserList = roleUserService.list(new LambdaQueryWrapper<RoleUser>()
+				.eq(RoleUser::getUsername, username));
+		if (CollectionUtils.isEmpty(roleUserList)) {
+			log.debug("User not set role. username = {}", username);
+			return R.ok().setData(menuList);
+		}
+
+		List<String> roleIdList = roleUserList.stream()
+				.map(RoleUser::getRoleId)
+				.toList();
+		List<RoleMenu> roleMenuList = roleMenuService.list(new LambdaQueryWrapper<RoleMenu>()
+				.in(RoleMenu::getRoleId, roleIdList));
+		if (CollectionUtils.isEmpty(roleMenuList)) {
+			log.debug("Role not set menu. username = {}, roleIdList = {}", username, roleIdList);
+			return R.ok().setData(menuList);
+		}
+
+		List<String> menuIdList = roleMenuList.stream()
+				.map(RoleMenu::getMenuId)
+				.distinct()
+				.toList();
+		menuList = menuService.list(new LambdaQueryWrapper<Menu>().in(Menu::getId, menuIdList)
+				.orderByAsc(Menu::getCode));
+		return R.ok().setData(menuList);
+	}
+
+	/**
+	 * 获取用户可以访问的权限点
+	 * @param username	用户名
+	 * @return	权限点信息
+	 */
+	@GetMapping("/getUserPermissions")
+	@ResponseBody
+	public R getUserPermissions(@NotBlank(message = "用户名不能为空")  String username) {
+		List<Permission> permissionList = Collections.emptyList();
+		List<RoleUser> roleUserList = roleUserService.list(new LambdaQueryWrapper<RoleUser>()
+				.eq(RoleUser::getUsername, username));
+		if (CollectionUtils.isEmpty(roleUserList)) {
+			log.debug("User not set role. username = {}", username);
+			return R.ok().setData(permissionList);
+		}
+
+		List<String> roleIdList = roleUserList.stream()
+				.map(RoleUser::getRoleId)
+				.toList();
+		List<RolePermission> rolePermissionList = rolePermissionService.list(new LambdaQueryWrapper<RolePermission>()
+				.in(RolePermission::getRoleId, roleIdList));
+		if (CollectionUtils.isEmpty(rolePermissionList)) {
+			log.debug("Role not set permission. username = {}, roleIdList = {}", username, roleIdList);
+			return R.ok().setData(permissionList);
+		}
+
+		List<String> permissionCodeList = rolePermissionList.stream()
+				.map(RolePermission::getPermissionCode)
+				.distinct()
+				.toList();
+		Map<String, String> permissionCodeCache = permissionCodeList.stream()
+				.collect(Collectors.toMap(Function.identity(), Function.identity()));
+
+		List<Permission> allPermissions = PermissionHelper.getAllPermissions();
+		permissionList = allPermissions.stream().filter(item -> permissionCodeCache.containsKey(item.getCode())).toList();
+		return R.ok().setData(permissionList);
 	}
 
 	/**

@@ -9,6 +9,10 @@ import org.springframework.core.annotation.Order;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import java.util.stream.Collectors;
+
 @RestControllerAdvice
 @Slf4j
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
@@ -22,5 +26,23 @@ public class GlobalExceptionHandler {
         errorResp.put(FixedResponse.FIXED_MSG, errorResp.getMsg());
         errorResp.put(FixedResponse.FIXED_DATA, errorResp.getData());
         return errorResp;
+    }
+
+    @ExceptionHandler({ConstraintViolationException.class})
+    public R handleConstraintViolationException(ConstraintViolationException e)  {
+        log.debug(e.getMessage(), e);
+        String message = e.getConstraintViolations().stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining("; "));
+        return R.error(message);
+    }
+
+    @ExceptionHandler({jakarta.validation.ConstraintViolationException.class})
+    public R handleConstraintViolationException(jakarta.validation.ConstraintViolationException e) {
+        log.debug(e.getMessage(), e);
+        String message = e.getConstraintViolations().stream()
+                .map(jakarta.validation.ConstraintViolation::getMessage)
+                .collect(Collectors.joining("; "));
+        return R.error(message);
     }
 }
