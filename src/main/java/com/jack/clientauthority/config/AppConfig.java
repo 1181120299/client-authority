@@ -10,11 +10,10 @@ import com.jack.clientauthority.processor.CustomAccessDeniedHandler;
 import com.jack.clientauthority.service.UserDetailService;
 import com.jack.clientauthority.service.impl.RemoteUserDetailServiceImpl;
 import com.jack.clientauthority.utils.ApplicationContextHelper;
+import com.jack.clientauthority.utils.UserHelper;
 import com.jack.clientauthority.utils.WebClientHelper;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -74,5 +73,10 @@ public class AppConfig {
     @Bean
     public ApplicationContextHelper clientAuthorityApplicationContextHelper() {
         return new ApplicationContextHelper();
+    }
+
+    @Bean
+    public UserHelper clientUserHelper() {
+        return new UserHelper();
     }
 }
