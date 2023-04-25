@@ -7,6 +7,7 @@ import com.jack.clientauthority.dto.RoleDto;
 import com.jack.clientauthority.entity.*;
 import com.jack.clientauthority.processor.PermissionHelper;
 import com.jack.clientauthority.service.*;
+import com.jack.clientauthority.vo.MenuTreeNode;
 import com.jack.clientauthority.vo.Permission;
 import com.jack.utils.web.R;
 import jakarta.annotation.Resource;
@@ -154,6 +155,16 @@ public class RoleController {
 		return "associatePermission";
 	}
 
+	/**
+	 * 返回角色分配菜单的页面
+	 */
+	@GetMapping("/associateMenu/{id}")
+	public String associateMenu(@PathVariable("id") String id, Model model) {
+		Role role = roleService.getById(id);
+		model.addAttribute("role", role);
+		return "associateMenu";
+	}
+
 	@GetMapping("/getPermissionTreeData")
 	@ResponseBody
 	public R getPermissionTreeData(@RequestParam String id) {
@@ -167,6 +178,63 @@ public class RoleController {
 		List<TreeNode> treeNodeList = generatePermissionTreeData(allPermissionList, alreadyAssociatedPermissionList);
 
 		return R.ok().setData(treeNodeList);
+	}
+
+	@GetMapping("/getMenuTreeData")
+	@ResponseBody
+	public R getMenuTreeData(@RequestParam String id) {
+		// 查询所有菜单项
+		List<Menu> allMenuList = menuService.list();
+		// 此角色已分配的菜单项
+		List<RoleMenu> roleMenuList = roleMenuService.list(new LambdaQueryWrapper<RoleMenu>()
+				.eq(RoleMenu::getRoleId, id));
+		List<Menu> assignedMenuList = Collections.emptyList();
+		if (CollectionUtils.isNotEmpty(roleMenuList)) {
+			List<String> assignedMenuIds = roleMenuList.stream()
+					.map(RoleMenu::getMenuId)
+					.toList();
+			assignedMenuList = menuService.listByIds(assignedMenuIds);
+		}
+
+		List<String> assignedMenuIds = assignedMenuList.stream().map(Menu::getId).toList();
+
+		// 生成ztree简单数据结构
+		List<TreeNode> treeNodeList = new ArrayList<>();
+		allMenuList.forEach(menu -> {
+			TreeNode treeNode = new TreeNode();
+			BeanUtils.copyProperties(menu, treeNode);
+			if (assignedMenuIds.contains(treeNode.getId())) {
+				treeNode.setChecked(true);
+			}
+
+			treeNodeList.add(treeNode);
+		});
+
+		TreeNode rootNode = new TreeNode();
+		rootNode.setId("0");
+		rootNode.setParentId("0");
+		rootNode.setName("根节点");
+		rootNode.setOpen(true);
+		treeNodeList.add(rootNode);
+
+		ensureTreeNodeChecked(treeNodeList, rootNode);
+		return R.ok().setData(treeNodeList);
+	}
+
+	/**
+	 * 保存为角色分配的菜单
+	 * @param paramMap	请求参数
+	 * @return	处理结果
+	 */
+	@PostMapping("/saveMenu")
+	@ResponseBody
+	public R saveMenu(@RequestBody Map<String, Object> paramMap) {
+		String roleId = MapUtils.getString(paramMap, "roleId");
+		Assert.hasText(roleId, "roleId can not be empty");
+		String menuIds = MapUtils.getString(paramMap, "menuIds");
+
+		roleMenuService.save(roleId, menuIds);
+		return R.ok();
 	}
 
 	@GetMapping("/getRoleUser")

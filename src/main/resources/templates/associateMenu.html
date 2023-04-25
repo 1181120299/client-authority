@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+    <head>
+        <title>Spring Security OAuth 2.0 Sample</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.css" th:href="@{/webjars/bootstrap/css/bootstrap.css}" />
+        <link rel="stylesheet" th:href="@{/webjars/github-com-zTree-zTree_v3/zTreeStyle/zTreeStyle.css}"/>
+    </head>
+    <body>
+        <div th:fragment="header">
+            <nav class="navbar navbar-default">
+                <div class="container-fluid">
+                    <div class="collapse navbar-collapse">
+                        <form class="navbar-form navbar-left" th:action="@{/role/page}" method="get">
+                            <button type="submit" class="btn btn-default navbar-btn">返回</button>
+                        </form>
+                        <form class="navbar-form navbar-right" th:action="@{/role/page}" method="get">
+                            <button class="btn btn-primary navbar-btn" type="button" onclick="saveMenu()">保存</button>
+                        </form>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div class="container">
+            <div th:if="${error}" class="alert alert-danger alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 th:text="${error}" class="text-center"></h4>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">分配角色菜单：[[${role.name}]]</h3>
+                </div>
+                <ul id="tree" class="ztree" style="width:1200px; overflow:auto;"></ul>
+
+                <div th:if="${messages}" class="panel-footer">
+                    <h4>Messages:</h4>
+                    <table class="table table-condensed">
+                        <tbody>
+                            <tr class="row" th:each="message : ${messages}">
+                                <td th:text="${message}">message</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <a id="ctx" style="display: none" th:href="@{/}"></a>
+
+        <input id="id" type="hidden" th:value="${role.getId()}">
+
+        <!-- Target 用于复制菜单内容 -->
+        <input type="hidden" id="copyInput" value="" />
+
+        <!-- Trigger 用于复制菜单内容 -->
+        <button id="copyBtn" data-clipboard-target="#copyInput" data-clipboard-action="copy" style="display: none">复制</button>
+
+        <script src="/webjars/jquery/jquery.min.js" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+        <script src="/webjars/bootstrap/js/bootstrap.min.js" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+        <script th:src="@{/webjars/github-com-zTree-zTree_v3/jquery.ztree.all.min.js}"></script>
+        <script th:src="@{/webjars/clipboard/dist/clipboard.min.js}"></script>
+        <script type="text/javascript" >
+            var ctx = $('#ctx').attr("href");
+            console.log("ctx = ", ctx);
+
+            var zTreeObj,
+                setting = {
+                    view: {
+                        selectedMulti: false
+                    },
+                    callback: {
+                        // onRightClick: zTreeOnRightClick,
+                        // onClick: ztreeOnClick
+                    },
+                    check: {
+                        enable: true
+                    },
+                    data: {
+                        simpleData: {
+                            enable: true,
+                            idKey: "id",
+                            pIdKey: "parentId",
+                            rootPId: 0
+                        }
+                    }
+                },
+                zTreeNodes = [
+                    {"id":1, "parentId":0, "name": "学习网站"},
+                    {"id":11, "parentId":1, "name": "码农之家", "url": "https://spring.io", open: true},
+                    {"id":12, "parentId":1, "name": "百度", "url": "https://www.baidu.com"},
+                    {"id":111, "parentId":11, "name": "程序猿进阶"}
+                ];
+
+            /* 事实证明，把ztree数据放到input隐藏域，再取出来赋值是行不通的。ztree.js直接报错，可能跟DOM的生命周期有关。 */
+            /*zTreeNodes = [
+                {"id":"0","name":"根节点","open":true,"parentId":"0"},
+                {"id":"JumpController$$SpringCGLIB$$0","name":"JumpController$$SpringCGLIB$$0","open":false,"parentId":"0"},
+                {"id":"c.j.b.c.JumpController$$SpringCGLIB$$0.doSomething","name":"做点什么","open":false,"parentId":"JumpController$$SpringCGLIB$$0"}
+            ];*/
+
+            $(document).ready(function(){
+                $.ajax({
+                    type: "GET",
+                    url: ctx + "role/getMenuTreeData?id=" + $("#id").val(),
+                    error: function () {
+                        alert("获取数据失败");
+                    },
+                    success: function (data) {
+                        console.info(data);
+
+                        zTreeNodes = data.fixedData;
+                        zTreeObj = $.fn.zTree.init($("#tree"), setting, zTreeNodes);
+                    }
+                })
+            });
+        </script>
+        <script type="text/javascript">
+            function saveMenu() {
+                var roleId = $("#id").val();
+                var checkedNodes = zTreeObj.getCheckedNodes(true);
+
+                var paramObj = {};
+                var permissionCodeArray = [];
+                for(var key in checkedNodes) {
+                    permissionCodeArray.push(checkedNodes[key].id);
+                }
+
+                paramObj['menuIds'] = permissionCodeArray.join(",");
+                paramObj['roleId'] = roleId;
+                console.debug(JSON.stringify(paramObj));
+
+                $.ajax({
+                    type: "POST",
+                    url: ctx + "role/saveMenu",
+                    data: JSON.stringify(paramObj),
+                    dataType: "json",
+                    contentType: "application/json",
+                    error: function () {
+                        alert("保存失败");
+                    },
+                    success: function (data) {
+                        console.debug(data);
+                        alert(data.fixedMsg);
+                        if (data.fixedCode === 200) {
+                            window.location.href = ctx + "role/page";
+                        }
+                    }
+                })
+            }
+        </script>
+    </body>
+</html>

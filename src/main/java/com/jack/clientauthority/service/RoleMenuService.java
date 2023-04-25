@@ -13,4 +13,10 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface RoleMenuService extends IService<RoleMenu> {
 
+    /**
+     * 保存为角色分配的菜单
+     * @param roleId    角色id
+     * @param menuIds   菜单id，多个以英文逗号拼接
+     */
+    void save(String roleId, String menuIds);
 }
