@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Data
 @ConfigurationProperties(prefix = "jack.oauth2")
@@ -43,7 +44,6 @@ public class OAuth2Properties implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         Assert.hasText(authServerUri, "AuthServerUri must not be empty.");
-        Assert.hasText(resourceServerUri, "ResourceServerUri must not be empty.");
         Assert.hasText(clientId, "ClientId must not be empty.");
         Assert.hasText(clientSecret, "ClientSecret must not be empty.");
 
@@ -51,7 +51,7 @@ public class OAuth2Properties implements InitializingBean {
             throw new IllegalStateException("AuthServerUri must not end with /");
         }
 
-        if (resourceServerUri.endsWith("/")) {
+        if (StringUtils.hasText(resourceServerUri) && resourceServerUri.endsWith("/")) {
             throw new IllegalStateException("ResourceServerUri must not end with /");
         }
     }
