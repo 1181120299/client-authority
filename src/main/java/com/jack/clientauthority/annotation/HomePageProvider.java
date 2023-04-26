@@ -1,5 +1,7 @@
 package com.jack.clientauthority.annotation;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
@@ -26,5 +28,5 @@ public interface HomePageProvider {
      * @return  应用首页
      */
     @GetMapping("/")
-    String homePage();
+    String homePage(HttpServletRequest request, HttpServletResponse response);
 }
