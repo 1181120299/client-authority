@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * 接口的方法，需要提供请求路径映射。例如：
  * <blockquote>
  *     <pre>
- *          &#064;GetMapping("/homePage")
+ *          &#064;GetMapping("/")
  *          public String homePage() {}
  *     </pre>
  * </blockquote>
