@@ -1,8 +1,11 @@
 package com.jack.clientauthority.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.jack.clientauthority.annotation.RabbitOperation;
 import com.jack.clientauthority.annotation.UserCache;
+import com.jack.clientauthority.entity.RoleUser;
+import com.jack.clientauthority.mapper.RoleUserMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,8 @@ public class SpringUserMqMessageConsumer {
 
     @Autowired
     private UserCache userCache;
+    @Autowired
+    private RoleUserMapper roleUserMapper;
 
     /**
      * 用户操作
@@ -31,6 +36,11 @@ public class SpringUserMqMessageConsumer {
             case SEARCH:
                 break;
             case DELETE:
+                userCache.clear();
+                String username = (String) rabbitOperation.getData();
+                roleUserMapper.delete(new LambdaQueryWrapper<RoleUser>()
+                        .eq(RoleUser::getUsername, username));
+                break;
             case UPDATE:
                 userCache.clear();
                 break;
