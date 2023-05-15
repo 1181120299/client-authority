@@ -23,7 +23,7 @@ import java.util.List;
  * 用户信息接口默认实现类。
  * <p></p>
  *
- * 从配置的授权服务器（authserver）获取用户信息。
+ * 从配置的资源服务器（resource server）获取用户信息。
  * <p></p>
  *
  * 如果用户信息来源于别的地方，client可以通过提供{@link com.jack.clientauthority.service.UserDetailService}的实现类来自定义。
